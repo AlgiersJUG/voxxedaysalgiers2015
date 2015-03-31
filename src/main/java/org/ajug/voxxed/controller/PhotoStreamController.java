@@ -26,11 +26,15 @@ public class PhotoStreamController {
 
     @Inject
     PhotoStreamService photoStreamService;
+    private final static String photoRepository = System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis();
+
+    public PhotoStreamController() {
+        new File(photoRepository).mkdirs();
+    }
 
     @RequestMapping(method = RequestMethod.POST)
-
-    public String upload(@RequestParam("name") String name, @RequestParam("author") String author, @RequestParam("tags") String tags,  @RequestParam("file")MultipartFile file) throws IOException {
-        photoStreamService.setPhotoRepository(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis());
+    public String upload(@RequestParam("name") String name, @RequestParam("author") String author, @RequestParam("tags") String tags, @RequestParam("file") MultipartFile file) throws IOException {
+        photoStreamService.setPhotoRepository(photoRepository);
         if (!file.isEmpty()) {
             final PhotoObject photoObject = new PhotoObject((FileInputStream) file.getInputStream()).withAuthor(author).withName(name).withTags(tags.split(";"));
             return photoStreamService.upload(photoObject);
