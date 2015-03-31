@@ -1,5 +1,7 @@
 package org.ajug.voxxed.service;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Abderrazak BOUADMA
@@ -8,4 +10,8 @@ package org.ajug.voxxed.service;
  */
 public interface PhotoStreamService {
     String upload(PhotoObject photoObject);
+
+    List<PhotoObject> getAllPhotos();
+
+    void setPhotoRepository(String s);
 }

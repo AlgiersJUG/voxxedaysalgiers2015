@@ -1,12 +1,13 @@
 package org.ajug.voxxed.service;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,9 +15,13 @@ import java.util.List;
  * Date: 3/31/15
  * Time: 3:53 PM
  */
+@Service
 public class OnLocalDiskPhotoStreamService implements PhotoStreamService {
 
-    private final String rootWorkingFolder;
+    private String rootWorkingFolder;
+
+    public OnLocalDiskPhotoStreamService() {
+    }
 
     public OnLocalDiskPhotoStreamService(String rootWorkingFolder) {
         this.rootWorkingFolder = rootWorkingFolder;
@@ -44,5 +49,34 @@ public class OnLocalDiskPhotoStreamService implements PhotoStreamService {
             e.printStackTrace();
         }
         return fileName;
+    }
+
+    @Override
+    public List<PhotoObject> getAllPhotos() {
+        final File repo = new File(rootWorkingFolder);
+        if (!repo.isDirectory())
+            throw new IllegalArgumentException("Path is not a folder");
+        final List<PhotoObject> photos = new ArrayList<>();
+        final File[] files = repo.listFiles();
+
+        Arrays.asList(files).stream().forEach(file -> {
+            if (!file.getName().contains(".meta")) {
+                try {
+                    final Scanner metas = new Scanner(new FileInputStream(repo.getPath() + File.separator + file.getName() + ".meta"));
+                    final String[] tags = metas.nextLine().split(" ");
+                    final String author = metas.nextLine();
+                    photos.add(new PhotoObject(new FileInputStream(file)).withName(file.getName()).withAuthor(author).withTags(tags));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+        return photos;
+    }
+
+    @Override
+    public void setPhotoRepository(String rootWorkingFolder) {
+        this.rootWorkingFolder = rootWorkingFolder;
     }
 }

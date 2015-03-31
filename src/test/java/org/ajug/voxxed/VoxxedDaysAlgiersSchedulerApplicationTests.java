@@ -18,10 +18,9 @@ public class VoxxedDaysAlgiersSchedulerApplicationTests {
 
 	@Test
 	public void contextLoads() {
-		final HttpEntity<String> parameters = new HttpEntity<>("parameters", buildHttpHeaders());
-		final ResponseEntity<String> responseEntity = restTemplate.exchange("http://localhost:9000/hello", HttpMethod.GET, parameters, String.class);
+		final HttpEntity<String> parameters = new HttpEntity<>("parameters");
+		final ResponseEntity<String> responseEntity = restTemplate.exchange("http://localhost:9000/upload?name=test&author=Abderrazak&tags=voxxed;algiers", HttpMethod.POST, parameters, String.class);
 		Assertions.assertThat(responseEntity.getStatusCode().value()).isEqualTo(200);
-		Assertions.assertThat(responseEntity.getHeaders().getAccept()).isNotEmpty().containsExactly(buildHttpHeaders());
 		Assertions.assertThat(responseEntity.getBody()).isNotEmpty().isEqualTo("Hello there !");
 	}
 
