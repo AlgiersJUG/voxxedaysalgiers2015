@@ -38,7 +38,7 @@ public class FlickrServiceTest {
         umd.setTitle("Alger la blanche");
         umd.setTags(Arrays.asList("Alger", "Algiers", "Algeria"));
         final REST transport = new REST();
-        transport.setProxy("10.0.1.1",3128);
+        transport.setProxy("10.0.1.1", 3128);
         Flickr FLICKR = new Flickr(FLICKR_API_KEY, FLICKR_API_SECRET, transport);
         final String upload = FLICKR.getUploader().upload(new File(System.getProperty("java.io.tmpdir") + File.separator + "algiers.jpg"), umd);
         System.out.println(upload);
