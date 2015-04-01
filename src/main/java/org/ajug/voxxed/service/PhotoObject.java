@@ -1,5 +1,7 @@
 package org.ajug.voxxed.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -13,7 +15,8 @@ import java.util.List;
  */
 public class PhotoObject {
 
-    private final FileInputStream photoStream;
+    @JsonIgnore
+    private FileInputStream photoStream;
     private String name;
     private List<String> tags;
     private String author;
