@@ -1,16 +1,23 @@
 package org.ajug.voxxed.controller;
 
 import org.ajug.voxxed.service.PhotoObject;
+import org.ajug.voxxed.service.PhotoStreamException;
 import org.ajug.voxxed.service.PhotoStreamService;
-import org.springframework.core.io.InputStreamResource;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.inject.Inject;
-import javax.print.attribute.standard.Media;
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -23,6 +30,7 @@ import java.util.List;
 @RequestMapping(value = "/photos", produces = MediaType.APPLICATION_JSON_VALUE)
 public class PhotoStreamController {
 
+    public static final Logger logger = LoggerFactory.getLogger(PhotoStreamController.class);
     @Inject
     PhotoStreamService photoStreamService;
 
@@ -38,13 +46,45 @@ public class PhotoStreamController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public HttpHeaders defaultMethod() {
+        throw new PhotoStreamException("This is a piece of shit !");
+        /*
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        try {
+            httpHeaders.setLocation(new URI("/photos"));
+        } catch (URISyntaxException e) {
+            throw new PhotoStreamException("", e);
+        }
+        return httpHeaders;
+        */
+
+    }
+
+    @ResponseStatus(value = HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET, value = "/all")
     public List<PhotoObject> listAllPhotos() {
-        return photoStreamService.getAllPhotos();
+        final List<PhotoObject> allPhotos = photoStreamService.getAllPhotos();
+        logger.info("" + allPhotos);
+        return allPhotos;
     }
 
     @RequestMapping(value = "/{photoId}", produces = MediaType.IMAGE_JPEG_VALUE)
-    public InputStreamResource getPhotoStream(@PathVariable String photoId) {
-        return new InputStreamResource(photoStreamService.getStream(photoId));
+    public void getPhotoStream(@PathVariable String photoId, HttpServletResponse response) {
+        final PhotoObject photo = photoStreamService.findByPhotoId(photoId);
+        response.setContentType(photo.getContentType());
+        try {
+            IOUtils.copy(photo.getPhotoStream(), response.getOutputStream());
+        } catch (IOException e) {
+            throw new PhotoStreamException("Error during stream copy from source to output", e);
+        }
+
+    }
+
+    @RequestMapping(value = "/url/{photoId}")
+    public String buildPhotoUrl(@PathVariable String photoId) {
+        final PhotoObject photo = photoStreamService.findByPhotoId(photoId);
+        return "http://localhost/photostream/" + photo.getName();
     }
 }

@@ -66,16 +66,11 @@ public class OnLocalDiskPhotoStreamService implements PhotoStreamService {
     @Override
     public List<PhotoObject> getAllPhotos() {
         final List<PhotoObject> photos = new ArrayList<>();
-        final File photoRepository = new File(rootWorkingFolder);
-        final File[] files = getAllFiles(photoRepository);
-
+        final File[] files = getAllFiles(new File(rootWorkingFolder));
         Arrays.asList(files).stream().forEach(file -> {
             if (!file.getName().contains(".meta")) {
                 try {
-                    final Scanner metas = new Scanner(new FileInputStream(photoRepository.getPath() + File.separator + file.getName() + ".meta"));
-                    final String[] tags = metas.nextLine().split(" ");
-                    final String author = metas.nextLine();
-                    photos.add(new PhotoObject(new FileInputStream(file)).withName(file.getName()).withAuthor(author).withTags(tags));
+                    photos.add(buildPhotoObject(file));
                 } catch (FileNotFoundException e) {
                     logger.error("[PhotoStream] Error during loading photo from repository.", e);
                 }
@@ -98,18 +93,27 @@ public class OnLocalDiskPhotoStreamService implements PhotoStreamService {
     }
 
     @Override
-    public InputStream getStream(String photoName) {
+    public PhotoObject findByPhotoId(String photoId) {
         final File[] allFiles = getAllFiles(new File(rootWorkingFolder));
         final List<File> files = Arrays.asList(allFiles)
             .stream()
-            .filter(f -> f.getName().contains(photoName) && !f.getName().endsWith(".meta"))
+            .filter(f -> f.getName().contains(photoId) && !f.getName().endsWith(".meta"))
             .collect(Collectors.toList());
-        if (files.size()==0)
-            throw new PhotoStreamException("Image " + photoName + " not found");
+        if (files.size() == 0)
+            throw new PhotoStreamException("One and only one PhotoObject expected");
+        final File file = files.get(0);
         try {
-            return new FileInputStream(files.get(0));
+            return buildPhotoObject(file);
         } catch (FileNotFoundException e) {
-            throw new PhotoStreamException("File was not found");
+            throw new PhotoStreamException("Metadata file for " + file.getName() + " Not found");
         }
+    }
+
+    private PhotoObject buildPhotoObject(File file) throws FileNotFoundException {
+        final File photoRepository = new File(rootWorkingFolder);
+        final Scanner metas = new Scanner(new FileInputStream(photoRepository.getPath() + File.separator + file.getName() + ".meta"));
+        final String[] tags = metas.nextLine().split(" ");
+        final String author = metas.nextLine();
+        return new PhotoObject(new FileInputStream(file)).withName(file.getName()).withAuthor(author).withTags(tags);
     }
 }

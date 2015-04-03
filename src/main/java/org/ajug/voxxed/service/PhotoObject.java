@@ -55,4 +55,17 @@ public class PhotoObject {
     public InputStream getPhotoStream() {
         return photoStream;
     }
+
+    public String getContentType() {
+        return "image/jpg";
+    }
+
+    @Override
+    public String toString() {
+        return "PhotoObject{" +
+            "name='" + name + '\'' +
+            ", tags=" + tags +
+            ", author='" + author + '\'' +
+            '}';
+    }
 }

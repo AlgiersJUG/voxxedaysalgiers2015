@@ -1,7 +1,5 @@
 package org.ajug.voxxed.service;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -20,5 +18,5 @@ public interface PhotoStreamService {
 
     void setPhotoRepository(String s);
 
-    InputStream getStream(String photoName);
+    PhotoObject findByPhotoId(String photoId);
 }
